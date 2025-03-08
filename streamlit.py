@@ -100,27 +100,27 @@ if year != "All":
     filtered_df = filtered_df[filtered_df["Fiscal_Year"] == year]
 if category != "All":
     filtered_df = filtered_df[filtered_df["Funding_Agency_Name"] == category]
-# **🔹 Compute KPI Metrics**
+
 total_aid_current = filtered_df["Current_Dollar_Amount"].sum()
 
 def format_large_number(value):
-    if value >= 1_000_000_000:  # If 1 billion or more
+    if value >= 1_000_000_000:  # 
         return f"${value / 1_000_000_000:.2f}B"
-    elif value >= 1_000_000:  # If 1 million or more
+    elif value >= 1_000_000:  # 
         return f"${value / 1_000_000:.2f}M"
-    else:  # Keep original if less than 1M
+    else:  # 
         return f"${value:,.2f}"
     
-# **🔹 Display KPI Metrics**
+###########========================================================
 st.markdown("### 1. Key US Foreign Aid Figures ")
 kpi_col1, kpi_col2 = st.columns(2)
 
 if country == "Israel":
-    country_color = "steelblue"  # Blue for Israel
+    country_color = "steelblue" 
 elif country == "West Bank and Gaza":
-    country_color = "salmon"  # Red for Gaza
+    country_color = "salmon"  
 else:
-    country_color = "white"  # Default color for other countries
+    country_color = "white" 
 
 with kpi_col1:
     st.markdown(f"<h2 style='color:{country_color};'>{country if country != 'All' else 'All Countries'}</h2>", unsafe_allow_html=True)
@@ -130,7 +130,7 @@ with kpi_col2:
         label="Total Aid (USD)",
         value=format_large_number(total_aid_current)
     )
-# **🔹 Display Filtered Data Table**
+
 st.dataframe(filtered_df.drop(columns=["Country_Name"]))
 graph_df = df.copy() 
 if country != "All":
@@ -138,8 +138,8 @@ if country != "All":
 if category != "All":
     graph_df = graph_df[graph_df["Funding_Agency_Name"] == category]
 color_map = {
-    "Israel": "steelblue",  # Israel -> Blue
-    "Gaza": "salmon",  # Gaza -> Red
+    "Israel": "steelblue",  
+    "Gaza": "salmon", 
 }
 graph_df["color"] = graph_df["Country_Name"].map(color_map).fillna("gray")  # Default Gray for others
 
@@ -147,7 +147,7 @@ graph_df = graph_df.groupby(["Country_Name", "Fiscal_Year"], as_index=False).agg
     {"Current_Dollar_Amount": "sum"}
 )
 
-# **🔹 Plot the data**
+
 fig = px.line(
     graph_df, 
     x="Fiscal_Year", 
@@ -160,9 +160,7 @@ fig = px.line(
 
 
 st.plotly_chart(fig)
-# **🔹 Aggregate Data for Bar Chart**
-
-# --- Separate Filters for Bar Chart ---
+###########========================================================
 st.markdown("### Funding Objectives breakdown 📊")
 col3, col4, col5 = st.columns(3)
 
@@ -179,24 +177,23 @@ with col5:
         key="sort_by_bar"
     )
 
-# **🔹 Filter Data for Bar Chart (Uses Separate Filters)**
 filtered_df_bar = df.copy()
 if selected_country_bar != "All":
     filtered_df_bar = filtered_df_bar[filtered_df_bar["Country_Name"] == selected_country_bar]
 if selected_year_bar != "All":
     filtered_df_bar = filtered_df_bar[filtered_df_bar["Fiscal_Year"] == selected_year_bar]
 
-# **🔹 Aggregate Data for Bar Chart by Selected Variable**
+
 bar_chart_df = filtered_df_bar.groupby(sort_variable, as_index=False).agg(
     {"Current_Dollar_Amount": "sum"}
 ).sort_values(by="Current_Dollar_Amount", ascending=True)
 color_arg = "Foreign_Assistance_Objective_Name" if sort_variable == "Foreign_Assistance_Objective_Name" else None
 color_map = {
-    "Economic": "#FFD700",  # Yellow for Economic
-    "Military": "#008000",  # Green for Military
+    "Economic": "#FFD700",  
+    "Military": "#008000",  
 }
 
-# **🔹 Bar Chart: Total Current Dollar Amount by Selected Variable**
+
 fig_bar = px.bar(
     bar_chart_df,
     x="Current_Dollar_Amount",
@@ -209,7 +206,7 @@ fig_bar = px.bar(
     color_discrete_map=color_map if color_arg else None
 )
 
-# **🔹 Display Bar Chart**s
+
 st.plotly_chart(fig_bar)
 
 
@@ -223,6 +220,7 @@ funding_activity_df["Current_Dollar_Amount"] = funding_activity_df["Current_Doll
 funding_activity_df.index = range(1, len(funding_activity_df) + 1)
 st.dataframe(funding_activity_df)
 
+###########========================================================
 st.markdown("### 2. Political events and fatalities timeline")  
 
 df_political["date"] = pd.to_datetime(df_political["Year"].astype(str) + "-" + df_political["Month"], errors="coerce", format="%Y-%B")
@@ -231,16 +229,14 @@ df_political = df_political.sort_values("date")
 available_years = sorted(df_political["Year"].dropna().unique(), reverse=True)
 selected_year = st.selectbox("Select Year", ["All"] + list(available_years), key="year_selector")
 
-# **🔹 Filter Data Based on Selected Year**
 filtered_df2 = df_political.copy()
 if selected_year != "All":
     filtered_df2 = filtered_df2[filtered_df2["Year"] == selected_year]
 
-# **🔹 Compute Total Fatalities**
+
 total_pse_fatalities = filtered_df2["pse_fatalities"].sum()
 total_israel_fatalities = filtered_df2["israel_fatalities"].sum()
 
-# **🔹 Display Total Fatalities as KPIs**
 st.markdown("### Total Fatalities Summary")
 col1, col2 = st.columns(2)
 with col1:
@@ -249,20 +245,19 @@ with col2:
     st.metric(label="Israel Fatalities", value=f"{total_israel_fatalities:,}")
 
 
-# **🔹 Sidebar Toggle for Events or Fatalities**
+
 y_axis_option = st.selectbox("Select Metric", ["Events", "Fatalities"], key="y_axis_toggle")
 
-# **🔹 Map Selection to Column Names**
+
 y_variable_map = {
     "Events": ["pse_events", "israel_events"],
     "Fatalities": ["pse_fatalities", "israel_fatalities"]
 }
 y_columns = y_variable_map[y_axis_option]
 
-# **🔹 Reshape Data for Plotly**
+
 df_melted = df_political.melt(id_vars=["date"], value_vars=y_columns, var_name="Group", value_name="Count")
 
-# **🔹 Map Group Names for Better Labels**
 group_labels = {
     "pse_events": "Palestine Events",
     "israel_events": "Israel Events",
@@ -271,7 +266,7 @@ group_labels = {
 }
 df_melted["Group"] = df_melted["Group"].map(group_labels)
 
-# **🔹 Line Graph with Toggle Support**
+
 fig2 = px.line(
     df_melted,
     x="date",
@@ -282,9 +277,8 @@ fig2 = px.line(
     markers=True
 )
 
-# **🔹 Display Chart**
 st.plotly_chart(fig2)
-
+###########========================================================
 
 st.markdown("### Civilian targeting events and fatalities Summary")  
 
@@ -294,12 +288,12 @@ df_civilian = df_civilian.sort_values("date")
 available_years2 = sorted(df_civilian["Year"].dropna().unique(), reverse=True)
 selected_year2 = st.selectbox("Select Year", ["All"] + list(available_years), key="year")
 
-# **🔹 Filter Data Based on Selected Year**
+
 filtered_df3 = df_civilian.copy()
 if selected_year2 != "All":
     filtered_df3 = filtered_df3[filtered_df3["Year"] == selected_year2]
 
-# **🔹 Compute Total Fatalities**
+
 total_pse_fatalities2 = filtered_df3["pse_fatalities"].sum()
 total_israel_fatalities2 = filtered_df3["israel_fatalities"].sum()
 
@@ -312,7 +306,7 @@ else :
 
 israel_percentage = total_israel_fatalities2/total_israel
 pse_percentage = total_pse_fatalities2/total_pse
-# **🔹 Display Total Fatalities as KPIs**
+
 col1, col2, col3, col4 = st.columns(4)
 with col1:
     st.metric(label="Palestine Fatalities", value=f"{total_pse_fatalities2:,}")
@@ -324,21 +318,17 @@ with col4:
     st.metric(label = "Percentage", value = f"{israel_percentage:.2%}")
 
 
-
-# **🔹 Sidebar Toggle for Events or Fatalities**
 y_axis_option2 = st.selectbox("Select Metric", ["Events", "Fatalities"], key="y_axis_toggle2")
 
-# **🔹 Map Selection to Column Names**
 y_variable_map2 = {
     "Events": ["pse_events", "israel_events"],
     "Fatalities": ["pse_fatalities", "israel_fatalities"]
 }
 y_columns2 = y_variable_map2[y_axis_option2]
 
-# **🔹 Reshape Data for Plotly**
 df_melted2 = df_civilian.melt(id_vars=["date"], value_vars=y_columns2, var_name="Group", value_name="Count")
 
-# **🔹 Map Group Names for Better Labels**
+
 group_labels2 = {
     "pse_events": "Palestine Events",
     "israel_events": "Israel Events",
@@ -347,7 +337,6 @@ group_labels2 = {
 }
 df_melted2["Group"] = df_melted2["Group"].map(group_labels2)
 
-# **🔹 Line Graph with Toggle Support**
 fig3 = px.line(
     df_melted2,
     x="date",
@@ -358,16 +347,15 @@ fig3 = px.line(
     markers=True
 )
 
-# **🔹 Display Chart**
 st.plotly_chart(fig3)
 
+
+###########========================================================
 st.markdown("### 3. Attack on healthcare facilities")
 
+df_health["Country"] = df_health["Country"].replace("OPT", "Palestine")  
 
-# **🔹 Load Data (df_health is already loaded)**
-df_health["Country"] = df_health["Country"].replace("OPT", "Palestine")  # ✅ Rename "OPT" to "Palestine"
 
-# **🔹 Select Variable to Display in Pie Chart**
 metric_options = {
     "Health Workers Killed": "health_workers_killed",
     "Health Workers Injured": "health_workers_injured",
@@ -380,44 +368,45 @@ metric_options = {
 
 selected_metric = st.selectbox("Select Metric to Display", list(metric_options.keys()), key="health_metric_toggle")
 
-# **🔹 Aggregate Data for Pie Chart**
+
 metric_column = metric_options[selected_metric]
 df_pie = df_health.groupby("Country", as_index=False)[metric_column].sum()
 st.write("Attack on healthcare facilities suffered by both sides from October 7th 2023 to September 2024") 
 
-# **🔹 Create Pie Chart**
+
 fig_pie = px.pie(
     df_pie,
     names="Country",
     values=metric_column,
     title=f"{selected_metric} by Country",
     color="Country",
-    color_discrete_map={"Israel": "steelblue", "Palestine": "salmon"}  # ✅ Assign colors
+    color_discrete_map={"Israel": "steelblue", "Palestine": "salmon"}  #
 )
 fig_pie.update_traces(textinfo="label+value", textfont_size=14)
-# **🔹 Display Pie Chart**
+
+
+
+###########========================================================
 st.plotly_chart(fig_pie)
 st.markdown("### Location of incident / weapon used by attacker")
 
-# **🔹 Load Data (df_weapons is assumed to be preloaded from BigQuery)**
-df_weapons["Country"] = df_weapons["Country"].replace("OPT", "Palestine")  # ✅ Rename "OPT" to "Palestine"
 
-# **🔹 Sidebar Toggle for Category (Weapons Used vs Location of Incident)**
+df_weapons["Country"] = df_weapons["Country"].replace("OPT", "Palestine")  # 
+
+
 category_options = {
     "Weapons Used by perpetrator": ("weapon_used", "weapon_usage_count"),
     "Location of Incident": ("incident_location", "attack_count")
 }
 selected_category = st.selectbox("Select Category to Compare", list(category_options.keys()), key="category_toggle")
 selected_column, sum_column = category_options[selected_category]
-# **🔹 Select the Column Based on Toggle**
 
-# **🔹 Aggregate Data for Weapons Used or Locations**
 df_agg = df_weapons.groupby(["Country", selected_column], as_index=False).agg({sum_column: "sum"})
-# **🔹 Separate Data for Israel and Palestine**
+
 df_israel = df_agg[df_agg["Country"] == "Israel"].sort_values(by=sum_column, ascending=False).head(5)
 df_palestine = df_agg[df_agg["Country"] == "Palestine"].sort_values(by=sum_column, ascending=False).head(5)
 
-# **🔹 Side-by-Side Layout for Comparison**
+
 col1, col2 = st.columns(2)
 color_map_last = {"Israel": "steelblue", "Palestine": "salmon"}
 with col1:
